@@ -1,33 +1,66 @@
 import { Component, OnInit } from '@angular/core';
-import { EveSystem, Adm } from './models/model';
+import { EveSystem, Adm, EveHome } from './models/model';
+import {RepoService} from './repo.service';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
+
+  constructor(private repo: RepoService) {
+    this.eveHome = { key: "", eveSystems: [] };
+    this.eveHome.eveSystems = this.eveSystems;
+  }
+
   title = 'WebAdmClient';
   public eveSystems: EveSystem[];
-
+  public eveHome: EveHome;
   public adm: Adm;
   ngOnInit() {
-    this.populateEsys();
-    this.adm = {name: "", id: 0};
+
+    this.loaddata();
+    this.eveHome.eveSystems = this.eveSystems;
+    this.adm = {name: "", id: 0, ts: new Date()};
   }
   public save() {
+    this.repo.save(this.eveHome).subscribe((ldata: any) => {
+      console.log(ldata);
+    }),
+      (error =>
+      {console.log(error);
 
+    });
+  }
+  public loaddata() {
+    this.repo.get().subscribe(eve => {
+      this.eveHome = eve;
+      if (this.eveHome.key == null) {
+        this.populateEsys();
+      }
+      this.eveSystems = this.eveHome.eveSystems;
+    }), ( error => {
+      console.log(error);
+      this.populateEsys();
+    });
   }
   public remove (a: string, iid: number){
+    this.loaddata();
     const data = this.eveSystems.filter(a => a.id === iid);
     for(let i = 0; i < data[0].adms.length; i++){
       if(data[0].adms[i].name === a) {
         data[0].adms.splice(i, 1);
       }
     }
+    this.save();
   }
+
+
   public addTag(e: string, iid: number) {
+    this.loaddata();
     const data = this.eveSystems.filter(a => a.id === iid);
-    data[0].adms.push({name: e, id: 1});
+    data[0].adms.push({name: e, id: 1, ts: new Date()});
+    this.save();
   }
   private populateEsys(): any {
     this.eveSystems = [];
@@ -44,9 +77,14 @@ export class AppComponent implements OnInit {
     ee.push({name: "PO-3QW", id: 8, adms: []});
     ee.push({name: "VF-FN6", id: 9, adms: []});
     ee.push({name: "Z-PNIA", id: 10, adms: []});
+    this.eveHome = { key: "evePower", eveSystems: [] };
+    this.eveHome.eveSystems = this.eveSystems;
   }
-  addAdm(id: number, adm: Adm) {
-    const sys = this.eveSystems.filter(a => a.id === id);
-    sys[0].adms.push(adm);
+
+  public clearSystems(){
+      this.populateEsys();
+      this.eveHome.key = "";
+      this.save();
   }
+
 }
