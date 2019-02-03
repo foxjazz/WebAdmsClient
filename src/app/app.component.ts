@@ -45,22 +45,39 @@ export class AppComponent implements OnInit {
     });
   }
   public remove (a: string, iid: number){
-    this.loaddata();
-    const data = this.eveSystems.filter(a => a.id === iid);
-    for(let i = 0; i < data[0].adms.length; i++){
-      if(data[0].adms[i].name === a) {
-        data[0].adms.splice(i, 1);
+    this.repo.get().subscribe(eve => {
+      this.eveHome = eve;
+      if (this.eveHome.key == null) {
+        this.populateEsys();
       }
-    }
-    this.save();
+      this.eveSystems = this.eveHome.eveSystems;
+      const data = this.eveSystems.filter(a => a.id === iid);
+      for (let i = 0; i < data[0].adms.length; i++){
+        if (data[0].adms[i].name === a) {
+          data[0].adms.splice(i, 1);
+        }
+      }
+      this.save();
+    }), ( error => {
+      console.log(error);
+      this.populateEsys();
+    });
+
   }
 
 
   public addTag(e: string, iid: number) {
-    this.loaddata();
-    const data = this.eveSystems.filter(a => a.id === iid);
-    data[0].adms.push({name: e, id: 1, ts: new Date()});
-    this.save();
+    this.repo.get().subscribe(eve => {
+      this.eveHome = eve;
+      this.eveSystems = this.eveHome.eveSystems;
+      const data = this.eveSystems.filter(a => a.id === iid);
+      data[0].adms.push({name: e.toUpperCase(), id: 1, ts: new Date()});
+      this.save();
+    }), ( error => {
+      console.log(error);
+      this.populateEsys();
+    });
+
   }
   private populateEsys(): any {
     this.eveSystems = [];
@@ -76,14 +93,15 @@ export class AppComponent implements OnInit {
     ee.push({name: "OCU4-R", id: 7, adms: []});
     ee.push({name: "PO-3QW", id: 8, adms: []});
     ee.push({name: "VF-FN6", id: 9, adms: []});
-    ee.push({name: "Z-PNIA", id: 10, adms: []});
+    ee.push({name: "Y-YGMW", id: 10, adms: []});
+    ee.push({name: "Z-PNIA", id: 12, adms: []});
     this.eveHome = { key: "evePower", eveSystems: [] };
     this.eveHome.eveSystems = this.eveSystems;
   }
 
   public clearSystems(){
       this.populateEsys();
-      this.eveHome.key = "";
+      this.eveHome.key = "evePower";
       this.save();
   }
 

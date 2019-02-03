@@ -3,6 +3,7 @@ import {HttpClient, HttpHeaders} from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
 import { EveHome } from './models/model';
+import {environment} from '../environments/environment';
 
 
 @Injectable({
@@ -13,7 +14,7 @@ export class RepoService {
   private httpOptions;
   constructor(private http: HttpClient) {
     this.uri  = "https://localhost:5001/api/adm";
-    this.uri = "https://webadms20190201075857.azurewebsites.net/api/adm";
+    this.uri = environment.serviceUri;
     this.httpOptions = {
       headers: new HttpHeaders({
         'Content-Type': 'application/json',

@@ -40,5 +40,15 @@
 </div>
 <!--<div><button class="btn" (click)="save()">Save</button></div>-->
 <div><button class="btn" (click)="clearSystems()">Clear All Systems</button></div>
+<div> --- copyable -----</div>
+<div *ngFor="let data of eveSystems">
+  {{data.name}}
+  <table>
+    <tr *ngFor="let ad of data.adms">
+      <td></td>
+      <td></td>
+      <td>{{ ad.name }}  </td>
+    </tr>
+  </table>
 
-
+</div>
