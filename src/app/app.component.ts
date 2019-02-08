@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { EveSystem, Adm, EveHome } from './models/model';
 import {RepoService} from './repo.service';
+import { HubConnection, HubConnectionBuilder } from '@aspnet/signalr';
+//import * as signalR from "@aspnet/signalr";
+import {LogLevel} from '@aspnet/signalr';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -8,20 +11,49 @@ import {RepoService} from './repo.service';
 })
 export class AppComponent implements OnInit {
 
-  constructor(private repo: RepoService) {
-    this.eveHome = { key: "", eveSystems: [] };
-    this.eveHome.eveSystems = this.eveSystems;
-  }
 
   title = 'WebAdmClient';
   public eveSystems: EveSystem[];
   public eveHome: EveHome;
   public adm: Adm;
+  private hubConnection: HubConnection;
+  constructor(private repo: RepoService) {
+    this.eveHome = { key: "", eveSystems: [] };
+    this.eveHome.eveSystems = this.eveSystems;
+    // @ts-ignore
+
+  }
   ngOnInit() {
 
     this.loaddata();
     this.eveHome.eveSystems = this.eveSystems;
     this.adm = {name: "", id: 0, ts: new Date()};
+    const uri = this.repo.getSRUri() + "/admchanges";
+    // Object.defineProperty(WebSocket, 'OPEN', { value: 1, });
+    this.hubConnection = new HubConnectionBuilder().configureLogging(LogLevel.Trace)
+      .withUrl(uri).build();
+
+
+    this.hubConnection.on('addadm', (name: string, system: number) => {
+      this.eveSystems = this.eveHome.eveSystems;
+      const data = this.eveSystems.filter(a => a.id === system);
+      data[0].adms.push({name: name.toUpperCase(), id: 1, ts: new Date()});
+    });
+
+    this.hubConnection.on('removeadm', (name: string, system: number) => {
+      this.eveSystems = this.eveHome.eveSystems;
+      const data = this.eveSystems.filter(a => a.id === system);
+      for (let i = 0; i < data[0].adms.length; i++){
+        if (data[0].adms[i].name === name) {
+          data[0].adms.splice(i, 1);
+        }
+      }
+    });
+
+    this.hubConnection
+      .start()
+      .then(() => console.log('Connection started!'))
+      .catch(err => console.log('Error while establishing connection :(' + err));
   }
   public save() {
     this.repo.save(this.eveHome).subscribe((ldata: any) => {
@@ -44,7 +76,15 @@ export class AppComponent implements OnInit {
       this.populateEsys();
     });
   }
-  public remove (a: string, iid: number){
+  public remove (a: string, iid: number)
+  {
+    this.hubConnection.invoke("removeadm", a, iid);
+  }
+  public addTag(e: string, iid: number){
+    this.hubConnection.invoke("AddAdm", e, iid);
+  }
+
+ /* public removeOld (a: string, iid: number){
     this.repo.get().subscribe(eve => {
       this.eveHome = eve;
       if (this.eveHome.key == null) {
@@ -66,7 +106,7 @@ export class AppComponent implements OnInit {
   }
 
 
-  public addTag(e: string, iid: number) {
+  public addTagOld(e: string, iid: number) {
     this.repo.get().subscribe(eve => {
       this.eveHome = eve;
       this.eveSystems = this.eveHome.eveSystems;
@@ -78,7 +118,7 @@ export class AppComponent implements OnInit {
       this.populateEsys();
     });
 
-  }
+  }*/
   private populateEsys(): any {
     this.eveSystems = [];
     const ee = this.eveSystems;

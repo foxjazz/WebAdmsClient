@@ -3,8 +3,8 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
-  serviceUri: "https://webadms20190201075857.azurewebsites.net/api/adm";
+  production: false,
+  serviceUri: "https://localhost:5001"
 };
 
 /*
