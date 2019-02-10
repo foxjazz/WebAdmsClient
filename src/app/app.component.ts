@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { EveSystem, Adm, EveHome } from './models/model';
-import {RepoService} from './repo.service';
-import { HubConnection, HubConnectionBuilder } from '@aspnet/signalr';
-//import * as signalR from "@aspnet/signalr";
-import {LogLevel} from '@aspnet/signalr';
+import {AngularFireStorage} from '@angular/fire/storage';
+
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -16,114 +15,58 @@ export class AppComponent implements OnInit {
   public eveSystems: EveSystem[];
   public eveHome: EveHome;
   public adm: Adm;
-  private hubConnection: HubConnection;
-  constructor(private repo: RepoService) {
-    this.eveHome = { key: "", eveSystems: [] };
-    this.eveHome.eveSystems = this.eveSystems;
-    // @ts-ignore
+  private db: any;
 
+  constructor(private adb: AngularFireStorage ) {
+    this.db = this.adb.storage.app.firestore();
   }
   ngOnInit() {
 
     this.loaddata();
     this.eveHome.eveSystems = this.eveSystems;
     this.adm = {name: "", id: 0, ts: new Date()};
-    const uri = this.repo.getSRUri() + "/admchanges";
-    // Object.defineProperty(WebSocket, 'OPEN', { value: 1, });
-    this.hubConnection = new HubConnectionBuilder().configureLogging(LogLevel.Trace)
-      .withUrl(uri).build();
 
-
-    this.hubConnection.on('addadm', (name: string, system: number) => {
-      this.eveSystems = this.eveHome.eveSystems;
-      const data = this.eveSystems.filter(a => a.id === system);
-      data[0].adms.push({name: name.toUpperCase(), id: 1, ts: new Date()});
-    });
-
-    this.hubConnection.on('removeadm', (name: string, system: number) => {
-      this.eveSystems = this.eveHome.eveSystems;
-      const data = this.eveSystems.filter(a => a.id === system);
-      for (let i = 0; i < data[0].adms.length; i++){
-        if (data[0].adms[i].name === name) {
-          data[0].adms.splice(i, 1);
-        }
-      }
-    });
-
-    this.hubConnection
-      .start()
-      .then(() => console.log('Connection started!'))
-      .catch(err => console.log('Error while establishing connection :(' + err));
+    this.db.collection("systems").doc("EveSystems")
+      .onSnapshot({
+        // Listen for document metadata changes
+        includeMetadataChanges: true
+      }, function(doc) {
+        this.eveSystems = doc.data();
+      });
   }
-  public save() {
-    this.repo.save(this.eveHome).subscribe((ldata: any) => {
-      console.log(ldata);
-    }),
-      (error =>
-      {console.log(error);
 
-    });
+  public save() {
+    this.db.collection("systems").doc("EveSystems").set(this.eveSystems);
   }
   public loaddata() {
-    this.repo.get().subscribe(eve => {
-      this.eveHome = eve;
-      if (this.eveHome.key == null) {
+    const docRef = this.db.collection("systems").doc("EveSystems");
+    docRef.get().then(function(doc) {
+      if(doc.exists) {
+        this.eveSystems = doc.data();
+      } else {
         this.populateEsys();
       }
-      this.eveSystems = this.eveHome.eveSystems;
-    }), ( error => {
-      console.log(error);
-      this.populateEsys();
     });
   }
-  public remove (a: string, iid: number)
-  {
-    this.hubConnection.invoke("removeadm", a, iid);
-  }
-  public addTag(e: string, iid: number){
-    this.hubConnection.invoke("AddAdm", e, iid);
-  }
-
- /* public removeOld (a: string, iid: number){
-    this.repo.get().subscribe(eve => {
-      this.eveHome = eve;
-      if (this.eveHome.key == null) {
-        this.populateEsys();
+  public remove (a: string, iid: number)  {
+    const data = this.eveSystems.filter(a => a.id === iid);
+    for (let i = 0; i < data[0].adms.length; i++){
+      if (data[0].adms[i].name === a) {
+        data[0].adms.splice(i, 1);
       }
-      this.eveSystems = this.eveHome.eveSystems;
-      const data = this.eveSystems.filter(a => a.id === iid);
-      for (let i = 0; i < data[0].adms.length; i++){
-        if (data[0].adms[i].name === a) {
-          data[0].adms.splice(i, 1);
-        }
-      }
-      this.save();
-    }), ( error => {
-      console.log(error);
-      this.populateEsys();
-    });
-
+    }
+    this.save();
+  }
+  public addTag(e: string, iid: number) {
+    const data = this.eveSystems.filter(a => a.id === iid);
+    data[0].adms.push({name: e.toUpperCase(), id: 1, ts: new Date()});
+    this.save();
   }
 
-
-  public addTagOld(e: string, iid: number) {
-    this.repo.get().subscribe(eve => {
-      this.eveHome = eve;
-      this.eveSystems = this.eveHome.eveSystems;
-      const data = this.eveSystems.filter(a => a.id === iid);
-      data[0].adms.push({name: e.toUpperCase(), id: 1, ts: new Date()});
-      this.save();
-    }), ( error => {
-      console.log(error);
-      this.populateEsys();
-    });
-
-  }*/
   private populateEsys(): any {
     this.eveSystems = [];
     const ee = this.eveSystems;
     console.log("starting");
-
     ee.push({name: "5XR-KZ", id: 1, adms: []});
     ee.push({name: "75C-WN", id: 2, adms: []});
     ee.push({name: "BG-W90", id: 3, adms: []});

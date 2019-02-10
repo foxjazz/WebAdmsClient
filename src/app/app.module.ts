@@ -4,6 +4,11 @@ import { FormsModule } from '@angular/forms';
 import {HttpClientModule} from '@angular/common/http';
 import { AppComponent } from './app.component';
 import {RepoService} from './repo.service';
+import {SignalRService} from './services/signalR.service';
+import {AngularFireModule} from '@angular/fire';
+
+import {environment} from '../environments/environment';
+import {AngularFirestore, AngularFirestoreModule} from '@angular/fire/firestore';
 
 @NgModule({
   declarations: [
@@ -13,8 +18,10 @@ import {RepoService} from './repo.service';
     BrowserModule,
     FormsModule,
     HttpClientModule,
+    AngularFireModule.initializeApp(environment.firebase),
+    AngularFirestoreModule
   ],
-  providers: [RepoService],
-  bootstrap: [AppComponent]
+  providers: [RepoService, SignalRService],
+  bootstrap: [AppComponent, AngularFirestore]
 })
 export class AppModule { }

@@ -4,7 +4,15 @@
 
 export const environment = {
   production: false,
-  serviceUri: "https://localhost:5001"
+  serviceUri: "https://localhost:5001",
+  firebase: {
+    apiKey: "AIzaSyC7m1m2bwxlgCp167EW7sluQlDP9L7BW20",
+    authDomain: "evesystems-6c479.firebaseapp.com",
+    databaseURL: "https://evesystems-6c479.firebaseio.com",
+    projectId: "evesystems-6c479",
+    storageBucket: "",
+    messagingSenderId: "708320134723"
+  }
 };
 
 /*
