@@ -3,12 +3,12 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {HttpClientModule} from '@angular/common/http';
 import { AppComponent } from './app.component';
-import {RepoService} from './repo.service';
-import {SignalRService} from './services/signalR.service';
-import {AngularFireModule} from '@angular/fire';
 
+import {AngularFireModule} from '@angular/fire';
+import { AngularFireStorageModule } from '@angular/fire/storage';
 import {environment} from '../environments/environment';
-import {AngularFirestore, AngularFirestoreModule} from '@angular/fire/firestore';
+import { AngularFirestoreModule, AngularFirestore} from '@angular/fire/firestore';
+import {EveDataService} from './services/eve-data.service';
 
 @NgModule({
   declarations: [
@@ -19,9 +19,10 @@ import {AngularFirestore, AngularFirestoreModule} from '@angular/fire/firestore'
     FormsModule,
     HttpClientModule,
     AngularFireModule.initializeApp(environment.firebase),
-    AngularFirestoreModule
+    AngularFirestoreModule,
+    AngularFireStorageModule
   ],
-  providers: [RepoService, SignalRService],
-  bootstrap: [AppComponent, AngularFirestore]
+  providers: [AngularFirestore, EveDataService],
+  bootstrap: [AppComponent]
 })
 export class AppModule { }

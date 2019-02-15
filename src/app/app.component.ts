@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { EveSystem, Adm, EveHome } from './models/model';
 import {AngularFireStorage} from '@angular/fire/storage';
+import {environment} from '../environments/environment';
 
 
 @Component({
@@ -9,17 +10,16 @@ import {AngularFireStorage} from '@angular/fire/storage';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-
-
-  title = 'WebAdmClient';
+  constructor(private afd: AngularFireStorage ) {
+     this.db = afd.storage.app.database(environment.firebase.databaseURL);
+    //  this.db = this.adb.storage.app.firestore();
+  }
+  private db: any;
   public eveSystems: EveSystem[];
   public eveHome: EveHome;
   public adm: Adm;
-  private db: any;
+  title = 'WebAdmClient';
 
-  constructor(private adb: AngularFireStorage ) {
-    this.db = this.adb.storage.app.firestore();
-  }
   ngOnInit() {
 
     this.loaddata();
